@@ -239,8 +239,8 @@ const makeCommon = async (startdt, enddt) => {
   const data2 = data.map(i => {
     const d = {};
     names2.forEach(j => d[j] = i[j]);
-    if (d.性別 == "男性") d.性別 = "男";
-    if (d.性別 == "女性") d.性別 = "女";
+    if (d.性別 == "男") d.性別 = "男性";
+    if (d.性別 == "女") d.性別 = "女性";
     return d;
   });
   data2.sort((a, b) => a[dt].localeCompare(b[dt]));
