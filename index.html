@@ -532,7 +532,7 @@
             <span class="label">LATEST COMMENT</span>
           </div>
           <div>
-            <div class=comment>越前カニ、いい感じ！（神奈川県、20代 女性、ダミー）</div>
+            <div class=rep_comment>越前カニ、いい感じ！（神奈川県、20代 女性、ダミー）</div>
             <img src="img/20f.png" style="float:right; height: 200px">
           </div>
         </div>
@@ -635,6 +635,18 @@
 import { CSV } from "https://js.sabae.cc/CSV.js";
 import { ArrayUtil } from "https://js.sabae.cc/ArrayUtil.js";
 import { showLineChart } from "https://code4fukui.github.io/eqnoto2024/showLineChart.js";
+/*
+import { getSurvey } from "https://code4fukui.github.io/fukui-kanko-stat/getSurvey.js";
+import { Day } from "https://js.sabae.cc/DateTime.js";
+
+const comment = await getSurvey(new Day().dayBefore(60), new Day());
+console.log(comment);
+*/
+
+const comment = await CSV.fetchJSON("./merged_survey_common.csv");
+//console.log(Object.keys(comment[0]));
+//console.log(comment.map(i => i.満足度理由).filter(i => i));
+const spot = await CSV.fetchJSON("./spot.csv");
 
 const fn = "nps-city.csv";
 const data = await CSV.fetchJSON(fn);
@@ -767,6 +779,24 @@ const show = (city) => {
   };
 
   showGraph(data, cities);
+
+  // comment
+  const spots = spot.filter(i => i.市区町村 == city).map(i => i.type);
+  console.log("spots", spots)
+  const citems = comment.filter(i => spots.indexOf(i.回答場所) >= 0 && i.満足度理由);
+  console.log(citems);
+  console.log(citems.map(i => i.満足度理由 + " " + i.居住都道府県 + " " + i.年代 + " " + i.性別));
+  citems.reverse();
+  const divcomment = document.body.querySelector(".rep_comment");
+  if (divcomment.timer) clearInterval(divcomment.timer);
+  let n = citems.length - 1;
+  const showComment = () => {
+    const item = citems[n];
+    n--;
+    divcomment.textContent = item.満足度理由 + " （" + item.居住都道府県 + " " + item.年代 + " " + item.性別 + "）";
+  };
+  divcomment.timer = setInterval(showComment, 3000);
+  showComment();
 };
 
 btn_start.onclick = () => {
