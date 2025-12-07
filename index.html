@@ -607,7 +607,10 @@
   <h1>EKKA's - 観光NPSダッシュボード</h1>
   <select id="selpref"></select>
   <select id="selcity"></select><br>
-  <button id="btn_start">観光NPSダッシュボードを表示する</button>
+  <button id="btn_start">はじめる</button>
+  <hr>
+  DATA: <a href=https://github.com/hokuriku-inbound-kanko/opendata>富山県、石川県、福井県の観光アンケートオープンデータ</a><br>
+  <a href=https://github.com/code4fukui/opendata-hokuriku>src on GitHub</a><br>
 </div>
 
 <style>
@@ -626,7 +629,7 @@
   z-index: 100;
   background-color: white;
   color: white;
-  text-shadow: black;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
   width: 100%;
   height: 100%;
 }
@@ -637,11 +640,15 @@
   margin: 2em .5em;
 }
 #pre > button {
-  padding: 1em;
+  padding: .3em 1.2em;
+  font-size: 130%;
 }
 #pre > select {
   padding: .5em;
   font-size: 120%;;
+}
+#pre > a {
+  color: white !important;
 }
 </style>
 
@@ -808,8 +815,12 @@ const show = (city) => {
   let n = citems.length - 1;
   const showComment = () => {
     const item = citems[n];
-    n--;
-    divcomment.textContent = item.満足度理由 + " （" + item.回答場所 + "にて、" + item.居住都道府県 + "に住む " + item.年代 + " " + item.性別 + "）";
+    if (n > 0) {
+      n--;
+    } else {
+      n = citems.length - 1;
+    }
+    divcomment.textContent = item.満足度理由 + " （おすすめ度 " + item.おすすめ度 + "、" + item.回答場所 + "にて、" + item.居住都道府県 + "に住む " + item.年代 + " " + item.性別 + "）";
     img_comment.src = "img/" + getImageName(item.性別, item.年代);
   };
   divcomment.timer = setInterval(showComment, 3000);
