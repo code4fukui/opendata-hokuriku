@@ -427,13 +427,18 @@
     #divchart {
       background-color: #f0f0f0;
     }
+
+    .section-title a {
+      color: gray !important;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
 
   <!-- 2D ダッシュボード -->
   <div class="section-title">
-    <span><strong id="to_back">EKKA's NPS DASHBOARD</strong> / <span class=rep_city>浅水二日町</span> AREA INDEX</span>
+    <span><strong id="to_back">EKKA's NPS DASHBOARD</strong> / <span class=rep_city>浅水二日町</span> AREA INDEX</span> / <a href=https://code4fukui.github.io/fukui-kanko-stat/comment.html>コメント新着順をチェックする</a>
   </div>
 
   <div class="layout">
@@ -462,7 +467,7 @@
           <div class="current-main">
             <div>
               <span class="current-value"><span class=rep_point_me>50.55</span></span>
-              <span class="current-arrow">↑</span>
+              <span class="current-arrow"><span class="rep_point_allow">↑</span></span>
             </div>
             <div class="current-meta"><span class=rep_point_dt>25/12/05 15:45 JST</span></div>
             <div class="diff"><span class=rep_point_dif>-536.55 (-1.05%)</span></div>
@@ -714,21 +719,26 @@ const show = (city) => {
   set("rep_point_me", latest.NPS);
   if (rank >= 2) {
     set("rep_rank_me_next", rank - 1);
-    set("rep_rank_me_next_p", (rows[rank - 2].NPS - latest.NPS).toFixed(1) + "P");
+    const npsd = rows[rank - 2].NPS - latest.NPS;
+    set("rep_rank_me_next_p", npsd.toFixed(1) + "P");
   } else {
     set("rep_rank_me_next", "-");
     set("rep_rank_me_next_p", "-");
   }
 
   const pre = items[items.length - 2];
-  console.log("pre", pre);
+  //console.log("pre", pre);
   if (pre) {
     set("rep_point_dt", latest.dt);
-    set("rep_point_dif", (pre.NPS - latest.NPS).toFixed(1) + "P");
+    const npsd = latest.NPS - pre.NPS;
+    console.log("dif", npsd, npsd > 0.05 ? "↑" : (npsd < -0.05 ? "↓" : "→"))
+    set("rep_point_dif", npsd.toFixed(1) + "P");
+    set("rep_point_allow", npsd > 0.05 ? "↑" : (npsd < -0.05 ? "↓" : "→"));
   } else {
     set("rep_rank_me_next_p", "-");
     set("rep_point_dt", "-");
     set("rep_point_dif", "-");
+    set("rep_point_allow", "-");
   }
 
   const cities = [];
