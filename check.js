@@ -150,6 +150,10 @@ console.log(prefs);
 */
 
 /*
+let startdt = null;
+let enddt = null;
+
+// 共通期間計測
 for (const pref of prefs) {
   const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref);
   items.sort((a, b) => a[dt].localeCompare(b[dt]));
@@ -158,22 +162,27 @@ for (const pref of prefs) {
 //福井 67669 2023/04/28 00:21:27 2025/11/27 23:19:54
 //石川 16384 2023/09/23 17:21:55 2025/11/28 1:08:26
 //富山 3339 2025/04/18 00:00:00 2025/10/31 00:00:00
+// 富山が一番短い
+const startdt = new DateTime("2025/04/18 00:00:00");
 */
 
-/*
-const name1 = "同伴者";
-const types = ArrayUtil.toUnique(data.map(i => i[name1]));
-const list = [];
-for (const type of types) {
-  const items = data.filter(i => i[name1] == type);
-  //items.sort((a, b) => a[dt].localeCompare(b[dt]));
-  //console.log(type, items.length);
-  list.push({ type, count: items.length });
-}
-list.sort((a, b) => b.count - a.count);
-console.log(list);
-await Deno.writeTextFile("companion.csv", CSV.stringify(list));
-*/
+
+const checkData = async (name1, fn) => {
+  const types = ArrayUtil.toUnique(data.map(i => i[name1]));
+  const list = [];
+  for (const type of types) {
+    const items = data.filter(i => i[name1] == type);
+    //items.sort((a, b) => a[dt].localeCompare(b[dt]));
+    //console.log(type, items.length);
+    list.push({ type, count: items.length });
+  }
+  list.sort((a, b) => b.count - a.count);
+  console.log(list);
+  await Deno.writeTextFile(fn + ".csv", CSV.stringify(list));
+};
+
+//await checkData("同伴者", "companion");
+await checkData("回答場所", "spot");
 
 
 const names2 = [];
