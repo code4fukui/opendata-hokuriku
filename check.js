@@ -144,8 +144,8 @@ const prefs = ArrayUtil.toUnique(data.map(i => i["対象県（富山/石川/福�
 console.log(prefs);
 */
 
-/*
 const prefs = [ "福井", "石川", "富山" ];
+/*
 for (const pref of prefs) {
   const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref);
   const dt = "アンケート回答日";
@@ -157,6 +157,7 @@ for (const pref of prefs) {
 //富山 3339 2025/04/18 00:00:00 2025/10/31 00:00:00
 */
 
+/*
 const name1 = "同伴者";
 const types = ArrayUtil.toUnique(data.map(i => i[name1]));
 const list = [];
@@ -164,26 +165,30 @@ for (const type of types) {
   const items = data.filter(i => i[name1] == type);
   //items.sort((a, b) => a[dt].localeCompare(b[dt]));
   //console.log(type, items.length);
-  list.push({type, count: items.length });
+  list.push({ type, count: items.length });
 }
 list.sort((a, b) => b.count - a.count);
 console.log(list);
 await Deno.writeTextFile("companion.csv", CSV.stringify(list));
+*/
 
 
-/*
 const list = [];
 for (const name of names) {
   const items = ArrayUtil.toUnique(data.map(i => i[name]));
   console.log(items);
   //console.log(prefs);
   const d = {};
-  d[0] = name;
-  for (let i = 0; i < 30; i++) {
-    d[i + 2] = items[i] || "";
+  d.name = name;
+  d.count = items.length;
+  for (const pref of prefs) {
+    const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref && i[name] != "");
+    d[pref] = items.length;
   }
-  d[1] = items.length;
+
+  for (let i = 0; i < 30; i++) {
+    d["項目" + (i + 2)] = items[i] || "";
+  }
   list.push(d);
 }
 await Deno.writeTextFile("items.csv", CSV.stringify(list));
-*/
