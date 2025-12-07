@@ -8,8 +8,6 @@ const data = await CSV.fetchJSON("merged_survey_common.csv");
 const spot2 = spot0.filter(i => i.市区町村.length > 1);
 console.log(spot2);
 
-const nmin = 0;
-
 /*
 推奨者（Promoters）: 9点～10点（友人・同僚に勧めたいと強く思う）
 中立者（Passives）: 7点～8点（満足はしているが、他社に乗り換える可能性も）
@@ -35,11 +33,11 @@ const cities = ArrayUtil.toUnique(spot0.map(i => i.市区町村));
 
 const fix0 = n => n < 10 ? "0" + n : "" + n;
 
-const getNPS = (year, month) => {
+const getNPS = (year, month, nmin) => {
   const dt = "アンケート回答日";
   const ym = year + "-" + fix0(month);
   const ym2 = year + "/" + fix0(month);
-  const data0 = data.filter(i => i[dt].startsWith(ym2));
+  const data0 = year ? data.filter(i => i[dt].startsWith(ym2)) : data;
   console.log(data0.length, year, month)
   const list = [];
   for (const city of cities) {
@@ -49,7 +47,7 @@ const getNPS = (year, month) => {
     //const nps = ArrayUtil.toUnique(data2.map(i => i.おすすめ度));
     //console.log(nps);
     const d = {};
-    d.dt = ym;
+    if (year) d.dt = ym;
     d.pref = spot0.find(i => i.市区町村 == city).都道府県;
     d.city = city;
     d.NPS = "";
@@ -66,7 +64,7 @@ const getNPS = (year, month) => {
     d.NPS = ((pcnt - dcnt) / d.cnt * 100).toFixed(1);
     list.push(d);
   }
-  const list2 = list.filter(i => !isNaN(i.NPS) && i.cnt >= nmin);
+  const list2 = list.filter(i => !isNaN(i.NPS) && (nmin && i.cnt >= nmin));
   list2.sort((a, b) => b.NPS - a.NPS);
   return list2;
 };
@@ -79,3 +77,5 @@ for (let month = 4; month <= 10; month++) {
   items.forEach(i => list.push(i));
 }
 await Deno.writeTextFile("nps-city.csv", CSV.stringify(list));
+const nmin = 100;
+await Deno.writeTextFile("nps-city-2025.csv", CSV.stringify(getNPS(null, null, nmin)));
