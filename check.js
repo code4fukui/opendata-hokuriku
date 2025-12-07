@@ -4,6 +4,7 @@ import { ArrayUtil } from "https://js.sabae.cc/ArrayUtil.js";
 const names = `対象県（富山/石川/福井）,アンケート回答日,居住都道府県,性別,年代,職業,世帯年収,同伴者,宿泊数（全行程）,宿泊エリア（県外）,宿泊エリア（県内）,宿泊数（県内）,１泊目　宿泊先,１泊目　食事プラン,２泊目　宿泊先,２泊目　食事プラン,３泊目　宿泊先,３泊目　食事プラン,４泊目　宿泊先,４泊目　食事プラン,交通手段１（目的地まで）,自家用車,レンタカー,新幹線,在来線,飛行機,旅行会社ツアーバス,県外から訪れていない（福井県在住）,交通手段２（目的地から）,タクシー,路線バス,徒歩,レンタサイクル,交通の満足度,交通の満足度の理由,来県回数（観光）,エリアへの訪問回数,施設への訪問回数,目的,宿でのんびり過ごす,温泉や露天風呂,地元の美味しいものを食べる,花見や紅葉などの自然鑑賞,名所、旧跡の観光,テーマパーク（遊園地、動物園、博物館など）,買い物、アウトレット,お祭りやイベントへの参加・見物,スポーツ観戦や芸能鑑賞（コンサート等）,アウトドア（海水浴、釣り、登山など）,まちあるき、都市散策,各種体験（手作り、果物狩りなど）,スキー・スノボ、マリンスポーツ,その他スポーツ（ゴルフ、テニスなど）,ドライブ・ツーリング,友人・親戚を尋ねる,出張など仕事関係,その他の目的,情報源,Facebook,Google,Googleマップ,Instagram,TikTok,X（旧Twitter）,YouTube,SNS広告,ブログ,まとめサイト,インターネット・アプリ,デジタルニュース,宿泊予約Webサイト,宿泊施設,TV・ラジオ番組やCM,ラブライブのスタンプラリー,新聞・雑誌・ガイドブック,旅行会社,友人・知人,地元の人,観光パンフレット・ポスター,観光案内所,観光展・物産展,観光連盟やDMOのHP,その他,他を検討した？,どこと比較した？（県）,どこと比較した？（観光地）,交通費,飲食費,宿泊費,買い物費,施設orエリア消費総額,観光費,訪問場所,寿司,ます寿司,海の幸食べたか,海の幸感動,満足度（食べ物・料理）,満足度（宿泊施設）,満足度（買い物（工芸品・特産品など））,満足度（観光・体験）,満足度（旅行全体）,満足度（商品・サービス）,満足度理由(サービス),満足度理由,不便に感じたこと・困ったこと,最も幸せを感じた食べ物,最も幸せを感じた観光・体験,おすすめ度,再訪意向,自由意見,回答場所,個人情報保護の方針について,アンケート前に訪れた主な場所（施設やスポット名称、エリアなど）,上記名称リストにない場合について、具体的にお答えください。(前),アンケート後に訪れる予定の場所（施設やスポット名称、エリア）,上記名称リストにない場合について、具体的にお答えください。(後),会員ID,登録エリア,生まれ年,回答時の年齢,UA(UserAgent),回答月,回答エリア2,DMO,推奨項目`.split(",");
 //names.forEach(i => console.log(i));
 
+const prefname = "対象県（富山/石川/福井）";
 const dt = "アンケート回答日";
 
 /*
@@ -141,6 +142,9 @@ const fn = "merged_survey.csv";
 const data = await CSV.fetchJSON(fn);
 console.log(data.length); // 87392
 
+// 期間ソート
+data.sort((a, b) => a[dt].localeCompare(b[dt]));
+
 //console.log(Object.keys(data[0]));
 //console.log(Object.keys(data[0]));
 
@@ -149,32 +153,52 @@ const prefs = ArrayUtil.toUnique(data.map(i => i["対象県（富山/石川/福�
 console.log(prefs);
 */
 
-/*
-let startdt = null;
-let enddt = null;
 
-// 共通期間計測
-for (const pref of prefs) {
-  const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref);
-  items.sort((a, b) => a[dt].localeCompare(b[dt]));
-  console.log(pref, items.length, items[0][dt], items[items.length - 1][dt]);
-}
-//福井 67669 2023/04/28 00:21:27 2025/11/27 23:19:54
-//石川 16384 2023/09/23 17:21:55 2025/11/28 1:08:26
-//富山 3339 2025/04/18 00:00:00 2025/10/31 00:00:00
-// 富山が一番短い
-const startdt = new DateTime("2025/04/18 00:00:00");
-*/
+const makeDT = () => {
+  const startdts = [];
+  const enddts = [];
 
+  // 共通期間計測
+  for (const pref of prefs) {
+    const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref);
+    const startdt = items[0][dt];
+    const enddt = items[items.length - 1][dt];
+    console.log(pref, items.length, startdt, enddt);
+    
+    startdts.push(startdt);
+    enddts.push(enddt);
+  }
+  //福井 67669 2023/04/28 00:21:27 2025/11/27 23:19:54
+  //石川 16384 2023/09/23 17:21:55 2025/11/28 1:08:26
+  //富山 3339 2025/04/18 00:00:00 2025/10/31 00:00:00
+  // 富山が一番短い
+  startdts.sort();
+  enddts.sort();
+  const startdt = startdts[startdts.length - 1];
+  const enddt = enddts[0];
+  
+  return { startdt, enddt };
+};
 
-const checkData = async (name1, fn) => {
+const { startdt, enddt } = makeDT();
+console.log({ startdt, enddt })
+
+const checkData = async (name1, fn, addpref = false) => {
   const types = ArrayUtil.toUnique(data.map(i => i[name1]));
   const list = [];
   for (const type of types) {
     const items = data.filter(i => i[name1] == type);
     //items.sort((a, b) => a[dt].localeCompare(b[dt]));
     //console.log(type, items.length);
-    list.push({ type, count: items.length });
+    const d = { type, count: items.length };
+    list.push(d);
+    if (addpref) {
+      const pref = items[0][prefname] + "県";
+      d["都道府県"] = pref;
+      if (pref == "富山県") {
+        d["市区町村"] = type == "" || type == "宿泊先" ? "-" : type;
+      }
+    }
   }
   list.sort((a, b) => b.count - a.count);
   console.log(list);
@@ -182,40 +206,49 @@ const checkData = async (name1, fn) => {
 };
 
 //await checkData("同伴者", "companion");
-await checkData("回答場所", "spot");
 
+//await checkData("回答場所", "spot", true);
+// 回答場所、富山は市町名 or 宿泊地 or 空白 になってる
 
-const names2 = [];
+const makeCommon = async (startdt, enddt) => {
+  const names2 = [];
 
-const list = [];
-for (const name of names) {
-  const items = ArrayUtil.toUnique(data.map(i => i[name]));
-  console.log(items);
-  //console.log(prefs);
-  const d = {};
-  d.name = name;
-  d.count = items.length;
-  let flg = true;
-  for (const pref of prefs) {
-    const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref && i[name] != "");
-    d[pref] = items.length;
-    if (!items.length) flg = false;
+  const list = [];
+  for (const name of names) {
+    const items = ArrayUtil.toUnique(data.map(i => i[name]));
+    console.log(items);
+    //console.log(prefs);
+    const d = {};
+    d.name = name;
+    d.count = items.length;
+    let flg = true;
+    for (const pref of prefs) {
+      const items = data.filter(i => i["対象県（富山/石川/福井）"] == pref && i[name] != "");
+      d[pref] = items.length;
+      if (!items.length) flg = false;
+    }
+    if (flg) names2.push(name);
+
+    for (let i = 0; i < 30; i++) {
+      d["項目" + (i + 1)] = items[i] || "";
+    }
+    list.push(d);
   }
-  if (flg) names2.push(name);
+  await Deno.writeTextFile("items.csv", CSV.stringify(list));
 
-  for (let i = 0; i < 30; i++) {
-    d["項目" + (i + 1)] = items[i] || "";
-  }
-  list.push(d);
-}
-await Deno.writeTextFile("items.csv", CSV.stringify(list));
+  const data2 = data.map(i => {
+    const d = {};
+    names2.forEach(j => d[j] = i[j]);
+    if (d.性別 == "男性") d.性別 = "男";
+    if (d.性別 == "女性") d.性別 = "女";
+    return d;
+  });
+  data2.sort((a, b) => a[dt].localeCompare(b[dt]));
+  const data3 = startdt && enddt ? data2.filter(i => i[dt].localeCompare(startdt) >= 0 && i[dt].localeCompare(enddt) <= 0) : data2;
+  console.log(data2.length, "->", data3.length)
+  await Deno.writeTextFile("merged_survey_common.csv", CSV.stringify(data3));
 
-const data2 = data.map(i => {
-  const d = {};
-  names2.forEach(j => d[j] = i[j]);
-  if (d.性別 == "男性") d.性別 = "男";
-  if (d.性別 == "女性") d.性別 = "女";
-  return d;
-});
-data2.sort((a, b) => a[dt].localeCompare(b[dt]));
-await Deno.writeTextFile("merged_survey_common.csv", CSV.stringify(data2));
+};
+
+//await makeCommon();
+await makeCommon(startdt, enddt);
