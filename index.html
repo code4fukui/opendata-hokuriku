@@ -1,74 +1,784 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
-<title>北陸観光NPS市町別推移</title></head><body>
-<h1>北陸観光NPS市町別推移</h1>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>観光NPSダッシュボード</title>
+  <!-- A-Frame(VR表示用) -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    :root {
+      --bg: #02040c;
+      --panel: #070c1a;
+      --accent-cyan: #27f4ff;
+      --accent-magenta: #ff2e97;
+      --accent-yellow: #ffd95e;
+      --text-main: #f5f7ff;
+      --text-sub: #8f9ac6;
+      --mono: "SF Mono","Roboto Mono",ui-monospace,Menlo,monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 0,#183c68 0,transparent 60%),
+                  radial-gradient(circle at 90% 100%,#43142f 0,transparent 55%),
+                  var(--bg);
+      color: var(--text-main);
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 20px 28px 40px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 背景グリッド + スキャンライン */
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+    body::before {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);
+      background-size: 0 0, 0 0;
+      background-size: 60px 60px, 60px 60px;
+      opacity: .15;
+      mix-blend-mode: screen;
+      animation: gridMove 40s linear infinite;
+    }
+    body::after {
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(255,255,255,0.05) 45%,
+        transparent 100%
+      );
+      mix-blend-mode: soft-light;
+      animation: scan 6s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate3d(0,0,0); }
+      100% { transform: translate3d(-60px,-60px,0); }
+    }
+    @keyframes scan {
+      0% { transform: translateY(-20%); }
+      100% { transform: translateY(20%); }
+    }
+
+    .layout {
+      display: flex;
+      gap: 24px;
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .card {
+      background: radial-gradient(circle at 0 0,#11172b,var(--panel));
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 20px 40px rgba(0,0,0,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content:"";
+      position:absolute;
+      inset:-1px;
+      background:
+        linear-gradient(120deg,rgba(39,244,255,0.35),transparent 40%,transparent 60%,rgba(255,46,151,0.25)),
+        linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px);
+      background-size: 200% 200%, 100% 18px;
+      mix-blend-mode: screen;
+      opacity:.35;
+      animation: borderFlow 9s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes borderFlow {
+      0% { background-position: 0 0,0 0; }
+      100% { background-position: 200% 200%,0 0; }
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .left {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .title-block {
+      margin-bottom: 4px;
+    }
+    .title-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+    }
+    .title-main {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: .22em;
+      text-shadow: 0 0 18px rgba(0,0,0,0.85);
+    }
+    .title-sub {
+      font-size: 11px;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+    .rank-pill {
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 0 0,#fff7c7,#ffb347);
+      color:#3a2600;
+      font-weight:700;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      box-shadow:0 0 12px rgba(255,208,0,0.9);
+      white-space:nowrap;
+    }
+    .accent-bar {
+      margin-top: 10px;
+      width: 150px;
+      height: 2px;
+      border-radius:999px;
+      background: linear-gradient(90deg,#27f4ff,#7a5cff,#ff2e97);
+      box-shadow:0 0 12px #27f4ff;
+      position:relative;
+      overflow:hidden;
+    }
+    .accent-bar::after {
+      content:"";
+      position:absolute;
+      width:70px;
+      height:2px;
+      background:rgba(255,255,255,0.9);
+      left:-70px;
+      top:0;
+      filter:blur(2px);
+      animation: sweep 2.3s ease-in-out infinite;
+    }
+    @keyframes sweep {
+      0%{ left:-70px; opacity:0; }
+      40%{opacity:1;}
+      100%{ left:160px; opacity:0; }
+    }
+
+    /* 汎用 */
+    .label {
+      font-size: 12px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color: var(--text-sub);
+    }
+    .pill {
+      font-size: 10px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.16);
+      background:linear-gradient(120deg,#111a3a,#151a2a);
+      color:#a7b7ff;
+    }
+    .card-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:8px;
+      gap:8px;
+    }
+    .header-left {
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dot {
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      background:radial-gradient(circle,#27f4ff,#0077ff);
+      box-shadow:0 0 10px #27f4ff;
+      animation:pulse 2.5s ease-out infinite;
+    }
+    @keyframes pulse{
+      0%{transform:scale(1);opacity:1;}
+      70%{transform:scale(1.7);opacity:0;}
+      100%{transform:scale(1);opacity:0;}
+    }
+
+    /* ランキング表 */
+    .rank-table {
+      margin-top:6px;
+      border-radius:14px;
+      background:rgba(2,5,16,0.85);
+      border:1px solid rgba(255,255,255,0.04);
+      overflow:hidden;
+    }
+    .rank-row {
+      display:grid;
+      grid-template-columns:26px minmax(0,1fr) 62px;
+      align-items:center;
+      padding:6px 10px;
+      font-size:12px;
+      border-top:1px solid rgba(255,255,255,0.04);
+      gap:6px;
+    }
+    .rank-row:first-child{border-top:none;}
+    .rank-pos{color:var(--text-sub);font-variant-numeric:tabular-nums;}
+    .rank-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .rank-point{font-family:var(--mono);text-align:right;}
+    .rank-row.top1 .rank-name{color:var(--accent-yellow);}
+    .rank-row.top2{
+      background:linear-gradient(90deg,rgba(39,244,255,0.18),transparent);
+      box-shadow:inset 2px 0 0 var(--accent-cyan);
+      position:relative;
+    }
+    /*
+    .rank-row.top2::after{
+      content:"1位まであと 10P";
+      position:absolute;
+      right:10px;
+      bottom:-15px;
+      font-size:11px;
+      color:#a7ffde;
+      text-shadow:0 0 10px rgba(39,244,255,0.9);
+      animation:bump 1.7s ease-in-out infinite;
+    }
+    */
+    @keyframes bump{
+      0%{transform:translateY(0);opacity:.6;}
+      50%{transform:translateY(-2px);opacity:1;}
+      100%{transform:translateY(0);opacity:.6;}
+    }
+
+    .avg {
+      font-size:13px;
+      line-height:1.7;
+      color:#c8cff5;
+    }
+    .avg strong{color:#fff;}
+
+    .right {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    /* 現在値カード */
+    .current-wrap {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+    }
+    .dotted-label{
+      border-left:2px solid var(--accent-cyan);
+      padding-left:10px;
+      font-size:11px;
+      letter-spacing:.25em;
+      text-transform:uppercase;
+      color:var(--text-sub);
+      margin-bottom:4px;
+    }
+    .current-main{text-align:right;}
+    .current-value{
+      font-size:34px;
+      font-weight:700;
+      font-family:var(--mono);
+      letter-spacing:.08em;
+    }
+    .current-arrow{
+      color:var(--accent-cyan);
+      margin-left:6px;
+      font-size:22px;
+      text-shadow:0 0 12px var(--accent-cyan);
+      animation:arrowFloat 1.5s ease-in-out infinite;
+    }
+    @keyframes arrowFloat{
+      0%{transform:translateY(0);opacity:.7;}
+      50%{transform:translateY(-2px);opacity:1;}
+      100%{transform:translateY(0);opacity:.7;}
+    }
+    .current-meta{
+      font-size:11px;color:var(--text-sub);margin-top:4px;
+    }
+    .diff{
+      font-size:13px;margin-top:3px;color:#7fb0ff;
+      font-family:var(--mono);
+    }
+    .gap-chip{
+      margin-top:8px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(39,244,255,0.8);
+      background:rgba(39,244,255,0.1);
+      font-size:11px;
+      color:#a7ffde;
+    }
+
+    /* トレンド行 */
+    .trend-row{
+      display:grid;
+      grid-template-columns:26px minmax(0,1fr) 58px 120px;
+      gap:10px;
+      align-items:center;
+      font-size:13px;
+      padding:6px 0;
+      border-top:1px solid rgba(255,255,255,0.04);
+    }
+    .trend-row:first-child{border-top:none;}
+    .trend-icon{font-size:18px;}
+    .trend-icon.red{color:#ff6b9d;}
+    .trend-icon.orange{color:#ffb35c;}
+    .trend-icon.green{color:#7dffa3;}
+    .trend-icon.blue{color:#5cc7ff;}
+    .trend-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .trend-point{
+      text-align:right;
+      font-family:var(--mono);
+      font-size:13px;
+    }
+    .spark svg{width:100%;height:30px;}
+    .spark path{
+      fill:none;
+      stroke-width:2.2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      stroke-dasharray:120;
+      stroke-dashoffset:120;
+      animation:lineDraw 4s linear infinite;
+    }
+    .spark.red path{stroke:#ff6b9d;}
+    .spark.orange path{stroke:#ffb35c;}
+    .spark.green path{stroke:#65ffbf;}
+    .spark.blue path{stroke:#5cc7ff;}
+    @keyframes lineDraw{
+      0%{stroke-dashoffset:120;opacity:.1;}
+      30%{opacity:1;}
+      100%{stroke-dashoffset:0;opacity:.95;}
+    }
+
+    /* 2D/VR セクションタイトル */
+    .section-title{
+      max-width:1280px;
+      margin:0 auto;
+      font-size:13px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--text-sub);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .section-title span strong{
+      color:var(--accent-cyan);
+    }
+    .vr-hint{
+      font-size:11px;
+      color:#9ca6ff;
+    }
+
+    /* VR シーンエリアを少し余白 */
+    .vr-wrap{
+      max-width:1280px;
+      margin:0 auto;
+      width:100%;
+      height:420px;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 12px 30px rgba(0,0,0,0.65);
+    }
+
+    a-scene{
+      width:100%;
+      height:100%;
+    }
+
+    @media (max-width:960px){
+      .layout{flex-direction:column;}
+      .left{width:100%;}
+    }
+
+    #divchart {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 2D ダッシュボード -->
+  <div class="section-title">
+    <span><strong id="to_back">2D DASHBOARD</strong> / <span class=rep_city>浅水二日町</span> AREA INDEX</span>
+  </div>
+
+  <div class="layout">
+    <!-- 左 -->
+    <div class="left">
+      <div class="title-block">
+        <div class="title-sub">AREA INDEX</div>
+        <div class="title-top">
+          <div class="title-main"><span class=rep_city>浅水二日町</span></div>
+          <div class="rank-pill">RANK <span class=rep_rank_me>2</span></div>
+        </div>
+        <div class="accent-bar"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="dot"></div>
+              <span class="label">RANKING</span>
+            </div>
+            <span class="pill">REAL-TIME FEED</span>
+          </div>
+
+          <div class="rank-table">
+            <div class="rank-row top1">
+              <div class="rank-pos"><span class=rep_rank1_n>1</span></div>
+              <div class="rank-name"><span class=rep_rank1>鯖江市 メガネストリート</span></div>
+              <div class="rank-point"><span class=rep_rank1_p>60P</span></div>
+            </div>
+            <div class="rank-row top2">
+              <div class="rank-pos"><span class=rep_rank2_n>2</span></div>
+              <div class="rank-name"><span class=rep_rank2>福井市 浅水二日町</span></div>
+              <div class="rank-point"><span class=rep_rank2_p>50P</span></div>
+            </div>
+            <div class="rank-row">
+              <div class="rank-pos"><span class=rep_rank3_n>3</span></div>
+              <div class="rank-name"><span class=rep_rank3>坂井市 東尋坊エリア</span></div>
+              <div class="rank-point"><span class=rep_rank3_p>48P</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 平均値カードなどはお好みで -->
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <span class="label">AVERAGE INDEX</span>
+          </div>
+          <div class="avg">
+            <strong>北陸3県</strong> : <span class=rep_ave_hokuriku>10P</span><br>
+            <strong>富山県</strong> : <span class=rep_ave_toyama>44P</span><br>
+            <strong>石川県</strong> : <span class=rep_ave_ishikawa>45P</span><br>
+            <strong>福井県</strong> : <span class=rep_ave_fukui>50P</span><br>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右 -->
+    <div class="right">
+      <div class="card">
+        <div class="card-inner current-wrap">
+          <div>
+            <div class="dotted-label">CURRENT VALUE</div>
+            <div style="font-size:13px;color:var(--text-sub);">前日比</div>
+            <div class="gap-chip">
+              <span>現在順位:<span class=rep_rank_me>2</span>位</span>|<span><span class=rep_rank_me_next>2</span>位まであと <span class=rep_rank_me_next_p>10P</span></span>
+            </div>
+          </div>
+          <div class="current-main">
+            <div>
+              <span class="current-value"><span class=rep_point_me>50.55</span></span>
+              <span class="current-arrow">↑</span>
+            </div>
+            <div class="current-meta"><span class=rep_point_dt>25/12/05 15:45 JST</span></div>
+            <div class="diff"><span class=rep_point_dif>-536.55 (-1.05%)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <span class="label">TREND CHART</span>
+          </div>
+          <div class=chart id=divchart></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <span class="label">LATEST COMMENT</span>
+          </div>
+          <div>
+            <div class=comment>越前カニ、いい感じ！（神奈川県、20代 女性、ダミー）</div>
+            <img src="img/20f.png" style="float:right; height: 200px">
+          </div>
+        </div>
+      </div>
+
+
+<!--
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <span class="label">TREND</span>
+            <span class="pill">SIMULATED REAL-TIME</span>
+          </div>
+
+          <div class="trend-row">
+            <div class="trend-icon red">↑</div>
+            <div class="trend-name"><span class=rep_trend1>福井市 浅水二日町</span></div>
+            <div class="trend-point"><span class=rep_trend1_p>+10P</span></div>
+            <div class="spark red">
+              <svg viewBox="0 0 100 32">
+                <path d="M2 28 L20 22 L38 20 L56 16 L74 10 L98 4" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="trend-row">
+            <div class="trend-icon orange">↗</div>
+            <div class="trend-name"><span class=rep_trend2>鯖江市 メガネストリート</span></div>
+            <div class="trend-point"><span class=rep_trend2_p>+8P</span></div>
+            <div class="spark orange">
+              <svg viewBox="0 0 100 32">
+                <path d="M2 26 L20 24 L38 20 L56 22 L74 18 L98 14" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="trend-row">
+            <div class="trend-icon green">→</div>
+            <div class="trend-name"><span class=rep_trend3>坂井市 三国湊・東尋坊</span></div>
+            <div class="trend-point"><span class=rep_trend3_p>+3P</span></div>
+            <div class="spark green">
+              <svg viewBox="0 0 100 32">
+                <path d="M2 18 L20 18 L38 17 L56 16 L74 17 L98 16" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="trend-row">
+            <div class="trend-icon blue">↓</div>
+            <div class="trend-name"><span class=rep_trend4>敦賀市 日本海さかな街</span></div>
+            <div class="trend-point"><span class=rep_trend4_p>-5P</span></div>
+            <div class="spark blue">
+              <svg viewBox="0 0 100 32">
+                <path d="M2 8 L20 10 L38 14 L56 18 L74 24 L98 28" />
+              </svg>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      -->
+
+    </div>
+  </div>
+
+<div id="pre">
+  <h1>観光NPSダッシュボード</h1>
+  <select id="selpref"></select>
+  <select id="selcity"></select><br>
+  <button id="btn_start">観光NPSダッシュボードを表示する</button>
+</div>
 
 <style>
-body {
+#pre {
+  position: fixed;
+  text-align: center;
+  padding: 5em;
+  top: 0;
+  left: 0;
+  z-index: 100;
   background-color: white;
-  font-family: sans-serif;
   color: black;
+  width: 100%;
+  height: 100%;
 }
-.chart {
-  background-color: #f8f8f8;
-  color: #222;
-  margin-bottom: .6em;
+#pre > * {
+  margin: 2em .5em;
 }
-.credit a {
-  color: gray !important;
+#pre > button {
+  padding: 1em;
+}
+#pre > select {
+  padding: .5em;
+  font-size: 120%;;
 }
 </style>
 
-<div class=chart id=divchart></div>
-
-<hr>
-<div class=credit>
-DATA: <a href=https://github.com/hokuriku-inbound-kanko/opendata>富山県、石川県、福井県の観光アンケートオープンデータ</a><br>
-<a href=https://github.com/code4fukui/opendata-hokuriku/>src on GitHub</a><br>
-</diV>
-
 <script type="module">
-import { showLineChart } from "https://code4fukui.github.io/eqnoto2024/showLineChart.js";
-//import { showLineChart } from "./showLineChart.js";
+
 import { CSV } from "https://js.sabae.cc/CSV.js";
 import { ArrayUtil } from "https://js.sabae.cc/ArrayUtil.js";
+import { showLineChart } from "https://code4fukui.github.io/eqnoto2024/showLineChart.js";
 
 const fn = "nps-city.csv";
+const data = await CSV.fetchJSON(fn);
 
-const show = (data) => {
-  const cities = ArrayUtil.toUnique(data.map(i => i.pref + " " + i.city));
-  const series = [];
-
-  const name = "NPS"; //Object.keys(data[0]);
-  const tname = "dt";
-  for (const city of cities) {
-    const dd = [];
-    let lastt = null;
-    let nlen = 0;
-    for (const d of data) {
-      if (d.pref + " " + d.city != city) continue;
-      const t = new Date(d[tname]).getTime();
-      const v = parseFloat(d[name]);
-      dd.push([t, v]);
-      nlen++;
+const prefs = ArrayUtil.toUnique(data.map(i => i.pref));
+for (const pref of prefs) {
+  const opt = document.createElement("option");
+  opt.textContent = pref;
+  selpref.appendChild(opt);
+  selpref.onchange = () => {
+    const pref = selpref.value;
+    selcity.innerHTML = "";
+    const cities = ArrayUtil.toUnique(data.filter(i => i.pref == pref).map(i => i.city));
+    for (const city of cities) {
+      const opt = document.createElement("option");
+      opt.textContent = city;
+      selcity.appendChild(opt);
     }
-    console.log(city, nlen);
-    if (nlen > 1) series.push({ name: city, data: dd });
+  };
+}
+selpref.onchange();
+
+
+//const city = "敦賀市";
+//const city = "七尾市";
+//const city = "福井市";
+const show = (city) => {
+  const set = (name, val) => {
+    document.body.querySelectorAll("." + name).forEach(i => i.textContent = val);
+  };
+
+  const items = data.filter(i => i.city == city);
+  console.log(items);
+  const latest = items[items.length - 1];
+
+  const rows = data.filter(i => i.dt == latest.dt);
+  const rank = rows.findIndex(i => i.city == city) + 1;
+  console.log("rank", rank)
+
+  set("rep_city", city);
+  set("rep_rank_me", rank);
+  set("rep_point_me", latest.NPS);
+  if (rank >= 2) {
+    set("rep_rank_me_next", rank - 1);
+    set("rep_rank_me_next_p", (rows[rank - 2].NPS - latest.NPS).toFixed(1) + "P");
+  } else {
+    set("rep_rank_me_next", "-");
+    set("rep_rank_me_next_p", "-");
   }
 
-  console.log(series);
+  const pre = items[items.length - 2];
+  console.log("pre", pre);
+  if (pre) {
+    set("rep_point_dt", latest.dt);
+    set("rep_point_dif", (pre.NPS - latest.NPS).toFixed(1) + "P");
+  } else {
+    set("rep_rank_me_next_p", "-");
+    set("rep_point_dt", "-");
+    set("rep_point_dif", "-");
+  }
+
+  const cities = [];
+
+  for (let i = 1; i <= 3; i++) {
+    const item = rows[rank - 3 + i];
+    if (item) {
+      set("rep_rank" + i + "_n", rank - 2 + i);
+      set("rep_rank" + i, item.city);
+      set("rep_rank" + i + "_p", item.NPS);
+      cities.push(item.city);
+    } else {
+      set("rep_rank" + i + "_n", "-");
+      set("rep_rank" + i, "-");
+      set("rep_rank" + i + "_p", "-");
+    }
+  }
+
+  const calcAverage = (data, pref = null) => {
+    const data2 = pref ? data.filter(i => i.pref == pref) : data;
+    let cnt = 0;
+    let npssum = 0;
+    for (const d of data2) {
+      cnt += parseInt(d.cnt);
+      npssum += parseFloat(d.NPS) * d.cnt;
+    }
+    return npssum / cnt;
+  };
+
+  set("rep_ave_hokuriku", calcAverage(rows).toFixed(1) + "%");
+  set("rep_ave_fukui", calcAverage(rows, "福井県").toFixed(1) + "%");
+  set("rep_ave_ishikawa", calcAverage(rows, "石川県").toFixed(1) + "%");
+  set("rep_ave_toyama", calcAverage(rows, "富山県").toFixed(1) + "%");
+
   /*
-  [
-    { name, data: [[time, val]] }
-  ]
+  rep_trend1 - 4
+  rep_trend1_p
   */
-  divchart.innerHTML = "";
-  const chart = showLineChart(divchart, series, 500);
+
+
+  const showGraph = (data, cities) => {
+    //const cities = ArrayUtil.toUnique(data.map(i => i.pref + " " + i.city));
+    const series = [];
+
+    const name = "NPS"; //Object.keys(data[0]);
+    const tname = "dt";
+    for (const city of cities) {
+      const dd = [];
+      let lastt = null;
+      let nlen = 0;
+      for (const d of data) {
+        //if (d.pref + " " + d.city != city) continue;
+        if (d.city != city) continue;
+        const t = new Date(d[tname]).getTime();
+        const v = parseFloat(d[name]);
+        dd.push([t, v]);
+        nlen++;
+      }
+      console.log(city, nlen);
+      if (nlen > 1) series.push({ name: city, data: dd });
+    }
+
+    console.log(series);
+    /*
+    [
+      { name, data: [[time, val]] }
+    ]
+    */
+    divchart.innerHTML = "";
+    const chart = showLineChart(divchart, series, 350);
+  };
+
+  showGraph(data, cities);
 };
 
-const data = await CSV.fetchJSON(fn);
-console.log(data);
-show(data);
+btn_start.onclick = () => {
+  pre.style.display = "none";
+  show(selcity.value);
+  to_back.onclick = () => {
+    pre.style.display = "block";
+  };
+};
 
 </script>
 
-</body></html>
+
+</body>
+</html>
