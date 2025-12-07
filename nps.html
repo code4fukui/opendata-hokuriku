@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
+<title>北陸観光NPS市町別推移</title></head><body>
+<h1>北陸観光NPS市町別推移</h1>
+
+<style>
+body {
+  background-color: white;
+  font-family: sans-serif;
+  color: black;
+}
+.chart {
+  background-color: #f8f8f8;
+  color: #222;
+  margin-bottom: .6em;
+}
+.credit a {
+  color: gray !important;
+}
+</style>
+
+<div class=chart id=divchart></div>
+
+<hr>
+<div class=credit>
+DATA: <a href=https://github.com/hokuriku-inbound-kanko/opendata>富山県、石川県、福井県の観光アンケートオープンデータ</a><br>
+<a href=https://github.com/code4fukui/opendata-hokuriku/>src on GitHub</a><br>
+</diV>
+
+<script type="module">
+import { showLineChart } from "https://code4fukui.github.io/eqnoto2024/showLineChart.js";
+//import { showLineChart } from "./showLineChart.js";
+import { CSV } from "https://js.sabae.cc/CSV.js";
+import { ArrayUtil } from "https://js.sabae.cc/ArrayUtil.js";
+
+const fn = "nps-city.csv";
+
+const show = (data) => {
+  const cities = ArrayUtil.toUnique(data.map(i => i.pref + " " + i.city));
+  const series = [];
+
+  const name = "NPS"; //Object.keys(data[0]);
+  const tname = "dt";
+  for (const city of cities) {
+    const dd = [];
+    let lastt = null;
+    let nlen = 0;
+    for (const d of data) {
+      if (d.pref + " " + d.city != city) continue;
+      const t = new Date(d[tname]).getTime();
+      const v = parseFloat(d[name]);
+      dd.push([t, v]);
+      nlen++;
+    }
+    console.log(city, nlen);
+    if (nlen > 1) series.push({ name: city, data: dd });
+  }
+
+  console.log(series);
+  /*
+  [
+    { name, data: [[time, val]] }
+  ]
+  */
+  divchart.innerHTML = "";
+  const chart = showLineChart(divchart, series, 500);
+};
+
+const data = await CSV.fetchJSON(fn);
+console.log(data);
+show(data);
+
+</script>
+
+</body></html>
