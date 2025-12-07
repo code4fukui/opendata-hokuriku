@@ -10,7 +10,6 @@ export const getImageName = (gender, age, year = 2025) => {
   const n = parseInt(age);
   if (isNaN(n)) return null;
   const y = year - n;
-  console.log("y", y);
   if (y < 20) return g + "10.png";
   if (y < 30) return g + "20.png";
   if (y < 40) return g + "30.png";
