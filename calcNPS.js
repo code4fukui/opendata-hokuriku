@@ -8,7 +8,7 @@ const data = await CSV.fetchJSON("merged_survey_common.csv");
 const spot2 = spot0.filter(i => i.市区町村.length > 1);
 console.log(spot2);
 
-const nmin = 30;
+const nmin = 0;
 
 /*
 推奨者（Promoters）: 9点～10点（友人・同僚に勧めたいと強く思う）
