@@ -1,0 +1,21 @@
+export const getImageName = (gender, age, year = 2025) => {
+  const g = gender == "男性" ? "M" : "F";
+  if (age == "10代" || age == "10歳未満") return g + "10.png";
+  if (age == "20代") return g + "20.png";
+  if (age == "30代") return g + "30.png";
+  if (age == "40代") return g + "40.png";
+  if (age == "50代") return g + "50.png";
+  if (age == "60代") return g + "60.png";
+  if (age == "70代" || age == "80歳以上") return g + "70.png";
+  const n = parseInt(age);
+  if (isNaN(n)) return null;
+  const y = year - n;
+  console.log("y", y);
+  if (y < 20) return g + "10.png";
+  if (y < 30) return g + "20.png";
+  if (y < 40) return g + "30.png";
+  if (y < 50) return g + "40.png";
+  if (y < 60) return g + "50.png";
+  if (y < 70) return g + "60.png";
+  return g + "70.png";
+};

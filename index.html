@@ -533,7 +533,7 @@
           </div>
           <div>
             <div class=rep_comment>越前カニ、いい感じ！（神奈川県、20代 女性、ダミー）</div>
-            <img src="img/20f.png" style="float:right; height: 200px">
+            <img id="img_comment" style="float:right; height: 200px">
           </div>
         </div>
       </div>
@@ -635,6 +635,7 @@
 import { CSV } from "https://js.sabae.cc/CSV.js";
 import { ArrayUtil } from "https://js.sabae.cc/ArrayUtil.js";
 import { showLineChart } from "https://code4fukui.github.io/eqnoto2024/showLineChart.js";
+import { getImageName } from "./getImageName.js";
 /*
 import { getSurvey } from "https://code4fukui.github.io/fukui-kanko-stat/getSurvey.js";
 import { Day } from "https://js.sabae.cc/DateTime.js";
@@ -793,7 +794,8 @@ const show = (city) => {
   const showComment = () => {
     const item = citems[n];
     n--;
-    divcomment.textContent = item.満足度理由 + " （" + item.居住都道府県 + " " + item.年代 + " " + item.性別 + "）";
+    divcomment.textContent = item.満足度理由 + " （" + item.回答場所 + "にて、" + item.居住都道府県 + "に住む " + item.年代 + " " + item.性別 + "）";
+    img_comment.src = "img/" + getImageName(item.性別, item.年代);
   };
   divcomment.timer = setInterval(showComment, 3000);
   showComment();
