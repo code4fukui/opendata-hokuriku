@@ -248,7 +248,7 @@
     .rank-pos{color:var(--text-sub);font-variant-numeric:tabular-nums;}
     .rank-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .rank-point{font-family:var(--mono);text-align:right;}
-    .rank-row.top1 .rank-name{color:var(--accent-yellow);}
+    /*.rank-row.top1 .rank-name{color:var(--accent-yellow);}*/
     .rank-row.top2{
       background:linear-gradient(90deg,rgba(39,244,255,0.18),transparent);
       box-shadow:inset 2px 0 0 var(--accent-cyan);
@@ -448,6 +448,29 @@
         <div class="accent-bar"></div>
       </div>
 
+
+      <!-- 現在インデックス -->
+      <div class="card">
+        <div class="card-inner current-wrap">
+          <div>
+            <div class="dotted-label">CURRENT VALUE</div>
+            <div style="font-size:13px;color:var(--text-sub);">前月比</div>
+            <div class="gap-chip">
+              <span>現在順位:<span class=rep_rank_me>2</span>位</span>|<span><span class=rep_rank_me_next>2</span>位まであと <span class=rep_rank_me_next_p>10P</span></span>
+            </div>
+          </div>
+          <div class="current-main">
+            <div>
+              <span class="current-value"><span class=rep_point_me>50.55</span></span>
+              <span class="current-arrow">↑</span>
+            </div>
+            <div class="current-meta"><span class=rep_point_dt>25/12/05 15:45 JST</span></div>
+            <div class="diff"><span class=rep_point_dif>-536.55 (-1.05%)</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ランキング -->
       <div class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -492,29 +515,12 @@
           </div>
         </div>
       </div>
+
+
     </div>
 
     <!-- 右 -->
     <div class="right">
-      <div class="card">
-        <div class="card-inner current-wrap">
-          <div>
-            <div class="dotted-label">CURRENT VALUE</div>
-            <div style="font-size:13px;color:var(--text-sub);">前月比</div>
-            <div class="gap-chip">
-              <span>現在順位:<span class=rep_rank_me>2</span>位</span>|<span><span class=rep_rank_me_next>2</span>位まであと <span class=rep_rank_me_next_p>10P</span></span>
-            </div>
-          </div>
-          <div class="current-main">
-            <div>
-              <span class="current-value"><span class=rep_point_me>50.55</span></span>
-              <span class="current-arrow">↑</span>
-            </div>
-            <div class="current-meta"><span class=rep_point_dt>25/12/05 15:45 JST</span></div>
-            <div class="diff"><span class=rep_point_dif>-536.55 (-1.05%)</span></div>
-          </div>
-        </div>
-      </div>
 
       <div class="card">
         <div class="card-inner">
@@ -532,7 +538,7 @@
           </div>
           <div>
             <div class=rep_comment>越前カニ、いい感じ！（神奈川県、20代 女性、ダミー）</div>
-            <img id="img_comment" style="float:right; height: 200px">
+            <img id="img_comment" style="float:right; height: 180px">
           </div>
         </div>
       </div>
@@ -785,7 +791,7 @@ const show = (city) => {
     ]
     */
     divchart.innerHTML = "";
-    const chart = showLineChart(divchart, series, 350);
+    const chart = showLineChart(divchart, series, 250);
   };
 
   showGraph(data, cities);
