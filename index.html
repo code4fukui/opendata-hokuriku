@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -607,6 +606,12 @@
 
 <style>
 #pre {
+  background: radial-gradient(circle at 10% 0,#183c68 0,transparent 60%),
+              radial-gradient(circle at 90% 100%,#43142f 0,transparent 55%),
+              var(--bg);
+  color: var(--text-main);
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
   position: fixed;
   text-align: center;
   padding: 5em;
@@ -614,9 +619,13 @@
   left: 0;
   z-index: 100;
   background-color: white;
-  color: black;
+  color: white;
+  text-shadow: black;
   width: 100%;
   height: 100%;
+}
+#pre > h1 {
+  font-size: 250%;
 }
 #pre > * {
   margin: 2em .5em;
