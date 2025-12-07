@@ -8,7 +8,7 @@ const data = await CSV.fetchJSON("merged_survey_common.csv");
 const spot2 = spot0.filter(i => i.市区町村.length > 1);
 console.log(spot2);
 
-const nmin = 100;
+const nmin = 30;
 
 /*
 推奨者（Promoters）: 9点～10点（友人・同僚に勧めたいと強く思う）
@@ -17,32 +17,65 @@ const nmin = 100;
 NPS = 推奨者の割合(％) － 批判者の割合(％) 
 */
 
+/*
+ウェークリー 月曜日はじめ（月曜祝日があるけど）
+*/
+/*
+
+const startdt = data[0][dt];
+const enddt = data[data.length - 1][dt];
+const weekoffset = new DateTime(startdt).day.getWeek(); // 1:Monday, 7:Sunday
+const startdt0 = new DateTime(startdt).day.dayBefore(weekoffset - 1);
+console.log(startdt, startdt0, startdt0.getWeek(), enddt);
+// 2025/04/18 00:00:00 Day { year: 2025, month: 4, day: 14 } 1 2025/10/31 00:00:00
+// 4, 5, 6, 7, 8, 9 10
+*/
+
 const cities = ArrayUtil.toUnique(spot0.map(i => i.市区町村));
 
-const list = [];
-for (const city of cities) {
-  const spot3 = spot2.filter(i => i.市区町村 == city).map(i => i.type);
-  const data2 = data.filter(i => spot3.indexOf(i.回答場所) >= 0);
-  //console.log(data2, spot.type);
-  //const nps = ArrayUtil.toUnique(data2.map(i => i.おすすめ度));
-  //console.log(nps);
-  const d = {};
-  d.pref = spot0.find(i => i.市区町村 == city).都道府県;
-  d.city = city;
-  d.NPS = "";
-  d.cnt = data2.length;
+const fix0 = n => n < 10 ? "0" + n : "" + n;
 
-  let dcnt = 0;
-  let pcnt = 0;
-  for (let i = 0; i <= 10; i++) {
-    const n = data2.filter(j => j.おすすめ度 == i).length;
-    d["NPS" + i] = (n / d.cnt * 100).toFixed(0) + "%";
-    if (i <= 6) dcnt += n;
-    if (i >= 9) pcnt += n;
+const getNPS = (year, month) => {
+  const dt = "アンケート回答日";
+  const ym = year + "-" + fix0(month);
+  const ym2 = year + "/" + fix0(month);
+  const data0 = data.filter(i => i[dt].startsWith(ym2));
+  console.log(data0.length, year, month)
+  const list = [];
+  for (const city of cities) {
+    const spot3 = spot2.filter(i => i.市区町村 == city).map(i => i.type);
+    const data2 = data0.filter(i => spot3.indexOf(i.回答場所) >= 0);
+    //console.log(data2, spot.type);
+    //const nps = ArrayUtil.toUnique(data2.map(i => i.おすすめ度));
+    //console.log(nps);
+    const d = {};
+    d.dt = ym;
+    d.pref = spot0.find(i => i.市区町村 == city).都道府県;
+    d.city = city;
+    d.NPS = "";
+    d.cnt = data2.length;
+
+    let dcnt = 0;
+    let pcnt = 0;
+    for (let i = 0; i <= 10; i++) {
+      const n = data2.filter(j => j.おすすめ度 == i).length;
+      d["NPS" + i] = (n / d.cnt * 100).toFixed(0) + "%";
+      if (i <= 6) dcnt += n;
+      if (i >= 9) pcnt += n;
+    }
+    d.NPS = ((pcnt - dcnt) / d.cnt * 100).toFixed(1);
+    list.push(d);
   }
-  d.NPS = ((pcnt - dcnt) / d.cnt * 100).toFixed(1);
-  list.push(d);
+  const list2 = list.filter(i => !isNaN(i.NPS) && i.cnt >= nmin);
+  list2.sort((a, b) => b.NPS - a.NPS);
+  return list2;
+};
+
+const list = [];
+
+const year = 2025;
+for (let month = 4; month <= 10; month++) {
+  const items = getNPS(year, month);
+  items.forEach(i => list.push(i));
 }
-const list2 = list.filter(i => !isNaN(i.NPS) && i.cnt >= nmin);
-list2.sort((a, b) => b.NPS - a.NPS);
-await Deno.writeTextFile("nps-city.csv", CSV.stringify(list2));
+await Deno.writeTextFile("nps-city.csv", CSV.stringify(list));
