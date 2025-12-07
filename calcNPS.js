@@ -64,7 +64,7 @@ const getNPS = (year, month, nmin) => {
     d.NPS = ((pcnt - dcnt) / d.cnt * 100).toFixed(1);
     list.push(d);
   }
-  const list2 = list.filter(i => !isNaN(i.NPS) && (nmin && i.cnt >= nmin));
+  const list2 = list.filter(i => !isNaN(i.NPS) && (!nmin || i.cnt >= nmin));
   list2.sort((a, b) => b.NPS - a.NPS);
   return list2;
 };
