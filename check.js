@@ -247,7 +247,6 @@ const makeCommon = async (startdt, enddt) => {
   const data3 = startdt && enddt ? data2.filter(i => i[dt].localeCompare(startdt) >= 0 && i[dt].localeCompare(enddt) <= 0) : data2;
   console.log(data2.length, "->", data3.length)
   await Deno.writeTextFile("merged_survey_common.csv", CSV.stringify(data3));
-
 };
 
 //await makeCommon();
